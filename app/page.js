@@ -23,17 +23,91 @@ import { motion } from "framer-motion";
 import { ExcelFile } from "@/constants/assets";
 import CloseIcon from "@mui/icons-material/Close"; // MUI close icon
 import { DUMMY_DATA } from "@/constants/dummyData";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+} from "recharts";
+
+// const aiResponse = {
+//   charts_data: [
+//     {
+//       title: "Market Growth Over Time",
+//       type: "line_chart",
+//       x_axis: ["2020", "2021", "2022", "2023", "2024", "2025"],
+//       y_axis: [50, 65, 80, 100, 130, 160],
+//     },
+//     {
+//       title: "Consumer Spending Trends",
+//       type: "bar_chart",
+//       x_axis: ["Q1", "Q2", "Q3", "Q4"],
+//       y_axis: [200, 220, 250, 270],
+//     },
+//   ],
+//   competitive_landscape: {
+//     market_positioning:
+//       "Tesla leads in innovation and brand prestige, Volkswagen excels in global reach and diverse offerings, while BYD focuses on affordable options and regional dominance.",
+//     top_competitors: [
+//       "Tesla: Holds a market share of approximately 20%, known for innovation and a strong brand presence. Weaknesses include high production costs.",
+//       "Volkswagen: Market share of around 15%, strengths in global reach and a diverse portfolio. Faces challenges in rapid transformation.",
+//       "BYD: Holds a market share of about 10%, strong in the Chinese market with cost-effective models. Limited brand recognition outside Asia.",
+//     ],
+//   },
+//   consumer_insights: {
+//     demographics:
+//       "The primary consumers of electric vehicles are urban dwellers aged 25-45 with higher disposable incomes. This group values sustainability and technological innovation.",
+//     trends: [
+//       "Increased adoption of EVs in urban areas due to better charging infrastructure and government policies.",
+//       "Growing interest in EVs among younger consumers, driven by environmental consciousness and lifestyle aspirations.",
+//       "Rising demand for electric SUVs and trucks, reflecting consumer preference for larger vehicles with increased functionality.",
+//     ],
+//   },
+//   financial_analysis: {
+//     profitability:
+//       "Major players like Tesla and Volkswagen have seen improving profit margins due to scale economies and technology improvements, with Tesla achieving a gross margin of around 25%.",
+//     revenue_trends:
+//       "Over the past five years, the electric vehicle market has seen consistent revenue growth, averaging 18% annually. Future forecasts indicate accelerated growth due to rising demand and technological advancements.",
+//   },
+//   forecasting_analysis: {
+//     growth_projections:
+//       "The electric vehicle market is expected to grow at a CAGR of 20-25% over the next five years, driven by technological innovations, policy support, and consumer shifts towards sustainable transportation.",
+//     potential_challenges:
+//       "Challenges include the need for extensive charging infrastructure, raw material supply constraints for batteries, and the transition of traditional automotive companies to EV production.",
+//   },
+//   key_takeaways: [
+//     "The electric vehicle market is on a rapid growth trajectory, with substantial opportunities for innovation and expansion.",
+//     "Companies should focus on enhancing battery technology and infrastructure development to capitalize on market trends.",
+//     "Collaborations between governments and private sectors will be crucial in overcoming infrastructure and resource challenges to ensure sustainable market growth.",
+//   ],
+//   market_overview: {
+//     industry_size:
+//       "As of 2023, the global electric vehicle market was valued at approximately $400 billion. It is projected to reach $1.5 trillion by 2025, growing at a CAGR of over 20%.",
+//     key_drivers: [
+//       "Advancements in battery technology: Improved battery efficiency and reduced costs are making EVs more accessible and affordable.",
+//       "Government incentives: Policies and subsidies are encouraging both consumers and manufacturers to adopt and produce EVs.",
+//       "Environmental awareness: Growing concern over carbon emissions is driving demand for cleaner transportation alternatives.",
+//     ],
+//   },
+//   summary:
+//     "The electric vehicle (EV) market is poised for significant growth by 2025, driven by advancements in battery technology, government incentives, and increased consumer demand for sustainable transportation solutions. The market is expected to witness a CAGR of over 20%, with key players expanding their production capabilities to meet rising demand. Consumer preferences are shifting towards EVs due to their environmental benefits and long-term cost savings. Despite potential challenges such as infrastructure development and raw material supply, the industry is set to transform the global automotive landscape.",
+//   title: "Trends and Projections in the Electric Vehicle Market in 2025",
+// };
 
 const TypingEffect = ({ text, onComplete }) => {
   const [displayText, setDisplayText] = useState("");
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    if (index < text.length) {
+    if (index < text?.length) {
       const timeout = setTimeout(() => {
         setDisplayText((prev) => prev + text[index]);
         setIndex(index + 1);
-      }, 50);
+      }, 10);
 
       return () => clearTimeout(timeout);
     } else {
@@ -55,7 +129,7 @@ export default function Home() {
   const analysingEndRef = useRef(null);
   const [messages, setMessages] = useState([
     {
-      text: "Unlock Insights with Innovation Scout",
+      text: "Try searching for ‘SAMI AI’ to explore the advanced technologies it provides, including market trend analysis, consumer behavior insights, and competitive landscape evaluation. What would you like to explore today?",
       sender: "bot",
       data: null,
     },
@@ -97,30 +171,27 @@ export default function Home() {
     }
   }, [messages, loading]);
 
-  // async
   const handleSend = async () => {
-    if (!file && !fileId) {
-      return ToastMessage("error", "Please upload a file to proceed with.");
-    }
+    // if (!file && !fileId) {
+    //   return ToastMessage("error", "Please upload a file to proceed with.");
+    // }
     if (!prmopt.trim()) {
       return ToastMessage(
         "error",
         "Please enter a prompt to specify what you want to search for."
       );
     }
-
-    let payload = { prmopt: prmopt };
-    if (fileId !== null) {
-      payload.file_id = fileId;
-    }
+    let payload = { text: prmopt };
+    // if (fileId !== null) {
+    //   payload.file_id = fileId;
+    // }
     setMessages([...messages, { text: prmopt, sender: "user", data: null }]);
     setLoading(true);
-
     try {
-      const response = await postApi(API.ANALYSIS, {
+      const response = await postApi(API.SAMI_AI_QUERY, {
         ...payload,
       });
-
+      const aiResponse = response?.data;
       if (response?.error) {
         ToastMessage("error", response?.message);
       } else if (!response?.error) {
@@ -128,10 +199,9 @@ export default function Home() {
           ...messages,
           { text: prmopt, sender: "user", data: null },
           {
-            text: response?.data?.summary,
             sender: "bot",
-            data: response?.data,
-            isChartContent: true,
+            data: aiResponse,
+            isChartContent: false,
           },
         ]);
       }
@@ -191,6 +261,12 @@ export default function Home() {
     setFile(null);
   };
 
+  const formatChartData = (chart) =>
+    chart.x_axis.map((label, index) => ({
+      name: label,
+      value: chart.y_axis[index],
+    }));
+
   return (
     <Box
       sx={{
@@ -246,19 +322,227 @@ export default function Home() {
                     textAlign: msg.sender === "user" ? "end" : "start",
                   }}
                 >
-                  {msg?.isChartContent ? (
-                    <TypingEffect
-                      text={msg.text}
-                      onComplete={() => {
-                        msg.showVisualization = true;
-                        setRefresh(!refresh);
-                      }}
-                    />
+                  {msg.sender === "bot" ? (
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "18px",
+                          padding: "5px 0px",
+                        }}
+                      >
+                        <TypingEffect
+                          text={msg?.data?.title}
+                          onComplete={() => {}}
+                        />
+                      </div>
+                      <div style={{ fontSize: "14px", marginBottom: "5px" }}>
+                        {msg?.text}
+                      </div>
+                      <div style={{ fontSize: "15px", marginBottom: "5px" }}>
+                        <TypingEffect
+                          text={msg?.data?.summary}
+                          onComplete={() => {}}
+                        />
+                      </div>
+
+                      {/* Competitive landscape */}
+                      {msg?.data?.competitive_landscape && (
+                        <>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "18px",
+                              padding: "7px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={
+                                msg?.data?.competitive_landscape
+                                  ?.market_positioning
+                              }
+                              onComplete={() => {}}
+                            />
+                          </div>
+                          {msg?.data?.competitive_landscape?.top_competitors
+                            ?.length > 0 && (
+                            <ul>
+                              {msg?.data?.competitive_landscape?.top_competitors?.map(
+                                (point, i) => (
+                                  <li key={i}>
+                                    <div style={{ fontSize: "14px" }}>
+                                      <TypingEffect
+                                        text={`${i + 1}. ${point}`}
+                                        onComplete={() => {}}
+                                      />
+                                    </div>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          )}
+                        </>
+                      )}
+
+                      {/* Consumer Insights */}
+                      {msg?.data?.consumer_insights && (
+                        <>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "18px",
+                              padding: "7px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={msg?.data?.consumer_insights?.demographics}
+                              onComplete={() => {}}
+                            />
+                          </div>
+                          {msg?.data?.consumer_insights?.trends?.length > 0 && (
+                            <ul>
+                              {msg?.data?.consumer_insights?.trends?.map(
+                                (point, i) => (
+                                  <li key={i}>
+                                    <div style={{ fontSize: "14px" }}>
+                                      <TypingEffect
+                                        text={`${i + 1}. ${point}`}
+                                        onComplete={() => {}}
+                                      />
+                                    </div>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          )}
+                        </>
+                      )}
+
+                      {/* Financial Analysis */}
+                      {msg?.data?.financial_analysis && (
+                        <>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "18px",
+                              padding: "7px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={
+                                msg?.data?.financial_analysis?.profitability
+                              }
+                              onComplete={() => {}}
+                            />
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              padding: "5px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={
+                                msg?.data?.financial_analysis?.revenue_trends
+                              }
+                              onComplete={() => {}}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Forecasting Analysis */}
+                      {msg?.data?.forecasting_analysis && (
+                        <>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "18px",
+                              padding: "7px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={
+                                msg?.data?.forecasting_analysis
+                                  ?.growth_projections
+                              }
+                              onComplete={() => {}}
+                            />
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              padding: "5px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={
+                                msg?.data?.forecasting_analysis
+                                  ?.potential_challenges
+                              }
+                              onComplete={() => {}}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Market Overview */}
+                      {msg?.data?.market_overview && (
+                        <>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "18px",
+                              padding: "7px 0px",
+                            }}
+                          >
+                            <TypingEffect
+                              text={msg?.data?.market_overview?.industry_size}
+                              onComplete={() => {}}
+                            />
+                          </div>
+                          {msg?.data?.market_overview?.key_drivers?.length >
+                            0 && (
+                            <ul>
+                              {msg?.data?.market_overview?.key_drivers?.map(
+                                (point, i) => (
+                                  <li key={i}>
+                                    <div style={{ fontSize: "14px" }}>
+                                      <TypingEffect
+                                        text={`${i + 1}. ${point}`}
+                                        onComplete={() => {}}
+                                      />
+                                    </div>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          )}
+                        </>
+                      )}
+
+                      {/*Key Takeaways */}
+                      {msg?.data?.key_takeaways && (
+                        <>
+                          {msg?.data?.key_takeaways?.length > 0 && (
+                            <ul>
+                              {msg?.data?.key_takeaways?.map((point, i) => (
+                                <li key={i}>
+                                  <div style={{ fontSize: "14px" }}>
+                                    <TypingEffect
+                                      text={`${i + 1}. ${point}`}
+                                      onComplete={() => {}}
+                                    />
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      )}
+                    </div>
                   ) : (
                     <div style={{ fontSize: "15px" }}>{msg.text}</div>
-                  )}
-                  {msg?.isChartContent && msg.showVisualization && (
-                    <AnaVisual data={msg.data} />
                   )}
                 </Paper>
               </ListItem>

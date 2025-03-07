@@ -28,7 +28,7 @@ export const getApi = async (api) => {
       error: true,
       message: error?.response?.data?.message || "Something went wrong.",
     };
-  }
+  }             
 };
 
 export const deleteApi = async (api) => {

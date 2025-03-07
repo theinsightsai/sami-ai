@@ -16,11 +16,12 @@ export const API = {
   GET_TASK_BY_ID: "/task",
   CREATE_ROLE: "/role/create",
   GET_ROLE_LIST: "/roles",
-  GET_ROLE_BY_ID: "/roles",
+  GET_ROLE_BY_ID: "/roles", 
   UPDATE_ROLE: "/role/update",
   UPLOAD_FILE: "/data-analysis?file",
   FORCASTING: "/data-forecasting",
   UPLOAD_EXCEL_FILE: "/upload-file",
   GET_FORCASTING: "/v1/data-forecasting",
   ANALYSIS: "/v1/data-analysis",
+  SAMI_AI_QUERY: "/v1/query-analysis",
 };
